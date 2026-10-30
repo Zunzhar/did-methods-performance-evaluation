@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Decentralized IAM · Evaluation Lab</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark">DI</div>
+    <div class="brand-copy"><div class="eyebrow">IDENTITY & ACCESS MANAGEMENT</div><h1>Decentralized IAM Evaluation Lab</h1></div>
+    <div class="status-wrap"><span class="status-dot"></span><span id="healthText">Connecting to local API…</span></div>
+  </header>
+  <main class="shell">
+    <section class="hero panel">
+      <div class="hero-copy">
+        <div class="eyebrow">LIFECYCLE-AWARE ARCHITECTURE</div>
+        <h2>One IAM workflow.<br><span>Five deployment profiles.</span></h2>
+        <p>Create synthetic DIDs, issue and revoke signed credentials, enforce contextual permissions, and compare the same lifecycle workload across five simulated profiles.</p>
+        <div class="equation"><span>Identity</span><b>AND</b><span>Proof / Credential</span><b>AND</b><span>Permission</span><b>AND</b><span>Context</span></div>
+      </div>
+      <div class="hero-stat"><div class="stat-label">EXECUTION MODE</div><div class="stat-value">LOCAL</div><div class="stat-sub">Simulation only · no blockchain connections</div></div>
+    </section>
+
+    <section class="section-head"><div><div class="eyebrow">01 / IDENTITY LIFECYCLE</div><h2>Manage DIDs</h2></div><button class="btn btn-quiet" id="refreshProfiles">Refresh profiles</button></section>
+    <div class="grid two-col">
+      <article class="panel card">
+        <div class="card-head"><div><h3>Create an identity</h3><p>Generate a synthetic DID and an Ed25519 key pair.</p></div><span class="step">01</span></div>
+        <form id="createForm" class="form-stack">
+          <label>Deployment profile<select id="profileSelect" required></select></label>
+          <label>Display name<input id="aliasInput" maxlength="100" placeholder="e.g. Student account" value="Student identity"></label>
+          <button class="btn btn-primary" type="submit">Create DID</button>
+        </form>
+        <div id="createResult" class="result-box empty">Your new identity will appear here.</div>
+      </article>
+      <article class="panel card">
+        <div class="card-head"><div><h3>Resolve / update / deactivate</h3><p>Inspect the visible DID document and lifecycle status.</p></div><span class="step">02</span></div>
+        <form id="resolveForm" class="form-stack">
+          <label>DID<input id="resolveDid" required placeholder="did:prototype:…"></label>
+          <div class="button-row"><button class="btn btn-secondary" type="submit">Resolve DID</button><button class="btn btn-secondary" id="rotateBtn" type="button">Rotate key</button><button class="btn btn-danger" id="deactivateBtn" type="button">Deactivate</button></div>
+        </form>
+        <div id="resolveResult" class="result-box empty">Resolved DID documents and pending propagation will appear here.</div>
+      </article>
+    </div>
+    <div id="profileList" class="profile-list"></div>
+
+    <section class="section-head"><div><div class="eyebrow">02 / VERIFIABLE CREDENTIAL LIFECYCLE</div><h2>Issue, verify, revoke</h2></div></section>
+    <div class="grid two-col">
+      <article class="panel card">
+        <div class="card-head"><div><h3>Issue a credential</h3><p>Sign a small prototype VC envelope using Ed25519.</p></div><span class="step">03</span></div>
+        <form id="issueForm" class="form-stack">
+          <label>Issuer DID<input id="issuerDid" required placeholder="Issuer DID"></label>
+          <label>Subject / holder DID<input id="subjectDid" required placeholder="Holder DID"></label>
+          <label>Claims as JSON<textarea id="claimsInput" rows="3">{"role":"student","course":"cybersecurity"}</textarea></label>
+          <label>Expiry<select id="expirySelect"><option value="3600">1 hour</option><option value="86400" selected>24 hours</option><option value="604800">7 days</option></select></label>
+          <button class="btn btn-primary" type="submit">Issue credential</button>
+        </form>
+        <div id="issueResult" class="result-box empty">Issued credentials will appear here.</div>
+      </article>
+      <article class="panel card">
+        <div class="card-head"><div><h3>Credential status</h3><p>Check signature, issuer/subject state, expiry, and revocation.</p></div><span class="step">04</span></div>
+        <form id="credentialForm" class="form-stack">
+          <label>Credential ID<input id="credentialIdInput" required placeholder="urn:uuid:…"></label>
+          <div class="button-row"><button class="btn btn-secondary" type="submit">Verify credential</button><button class="btn btn-danger" id="revokeCredentialBtn" type="button">Revoke</button></div>
+        </form>
+        <div id="credentialResult" class="result-box empty">Credential verification output will appear here.</div>
+      </article>
+    </div>
+
+    <section class="section-head"><div><div class="eyebrow">03 / POLICY & ENFORCEMENT</div><h2>Access decision</h2></div></section>
+    <div class="grid two-col">
+      <article class="panel card">
+        <div class="card-head"><div><h3>Grant direct permission</h3><p>Permissions are attached to the individual DID, not a role group.</p></div><span class="step">05</span></div>
+        <form id="permissionForm" class="form-stack">
+          <label>DID<input id="permissionDid" required placeholder="Holder DID"></label>
+          <div class="form-row"><label>Resource<input id="resourceInput" required value="lab-101"></label><label>Action<input id="actionInput" required value="enter"></label></div>
+          <label>Required context (JSON)<textarea id="conditionsInput" rows="2">{"lab_open":true}</textarea><span class="field-hint">Use {} when no contextual conditions are required.</span></label>
+          <label class="checkbox-line"><input id="requireCredential" type="checkbox" checked> Require a valid credential</label>
+          <button class="btn btn-primary" type="submit">Grant / update permission</button>
+        </form>
+        <div id="permissionResult" class="result-box empty">Permission details will appear here.</div>
+      </article>
+      <article class="panel card">
+        <div class="card-head"><div><h3>Run an access check</h3><p>Fresh, verifier-bound challenge plus a holder signature prevents simple replay.</p></div><span class="step">06</span></div>
+        <form id="authorizeForm" class="form-stack">
+          <label>Holder DID<input id="authDid" required placeholder="Holder DID"></label>
+          <div class="form-row"><label>Resource<input id="authResource" required value="lab-101"></label><label>Action<input id="authAction" required value="enter"></label></div>
+          <label>Credential ID (required only when policy requires one)<input id="authCredentialId" placeholder="urn:uuid:…"></label>
+          <label>Verifier identifier<input id="verifierId" required value="university-lab-portal"></label>
+          <label>Runtime context (JSON)<textarea id="contextInput" rows="2">{"lab_open":true}</textarea></label>
+          <button class="btn btn-primary" type="submit">Verify & authorize</button>
+        </form>
+        <div id="authorizeResult" class="result-box empty">The policy decision and individual checks will appear here.</div>
+      </article>
+    </div>
+
+    <section class="section-head"><div><div class="eyebrow">04 / COMPARATIVE EVALUATION</div><h2>Benchmark the profiles</h2></div></section>
+    <section class="panel card">
+      <div class="benchmark-controls">
+        <label>Workload<select id="workloadSelect"><option value="single_ops">W1 · Single operations</option><option value="enrollment_burst">W2 · Enrollment burst</option><option value="mixed_steady_state">W3 · Mixed steady state</option><option value="fault_injection">W4 · Fault injection</option></select></label>
+        <label>Iterations<input id="iterationsInput" type="number" min="1" max="200" value="10"></label>
+        <label>Concurrency levels<input id="concurrencyInput" value="1,10,50" placeholder="1,10,50"></label>
+        <button class="btn btn-primary" id="runBenchmarkBtn" type="button">Run benchmark</button>
+      </div>
+      <div id="benchmarkResult" class="result-box empty">Run a workload to compare local observed timings and the clearly-labelled synthetic profile assumptions.</div>
+      <div id="benchmarkTableWrap" class="table-wrap"></div>
+    </section>
+
+    <section class="section-head"><div><div class="eyebrow">05 / OPERATIONAL TELEMETRY</div><h2>Metrics & audit trail</h2></div><div class="button-row"><button class="btn btn-quiet" id="refreshMetrics">Refresh metrics</button><button class="btn btn-quiet" id="refreshAudit">Refresh audit</button></div></section>
+    <section class="grid metrics-grid" id="metricCards"></section>
+    <section class="panel card">
+      <div class="card-head"><div><h3>Recent audit events</h3><p>Operations, normalized timestamps, response classes, storage, and synthetic costs.</p></div><span class="step">LOG</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Time</th><th>Profile</th><th>Operation</th><th>Response</th><th>Observed ms</th><th>Synthetic units</th><th>Identifier</th></tr></thead><tbody id="auditBody"><tr><td colspan="7" class="muted">No events loaded yet.</td></tr></tbody></table></div>
+    </section>
+    <footer><span>Decentralized IAM Evaluation Lab · v0.1.0</span><span>Local-only demo · synthetic identifiers · no real chain calls</span></footer>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>
